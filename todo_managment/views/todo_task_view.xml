@@ -1,0 +1,130 @@
+<odoo>
+    <record id="todo_task_view_tree" model="ir.ui.view">
+        <field name="name">Todo Tree</field>
+        <field name="model">todo.task</field>
+        <field name="arch" type="xml">
+            <tree multi_edit="True" decoration-danger="(is_late)">
+                <field name="name" readonly="status in ['completed','closed']"/>
+                <field name="employee_id"/>
+                <field name="is_late" invisible="True"/>
+                <field name="active"/>
+                <field name="assign_to"/>
+                <field name="description"/>
+                <field name="due_date"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="todo_task_view_search" model="ir.ui.view">
+        <field name="name">Todo Search</field>
+        <field name="model">todo.task</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="assign_to"/>
+                <filter name="new_tasks" string="New Tasks" domain="[('status','=','new')]"/>
+                <filter name="grouping_by_owners" string="Owners" context="{'group_by':'assign_to'}"/>
+                <filter name="grouping_by_status" string="Status" context="{'group_by':'status'}"/>
+                <filter name="grouping_by_date" string="Date" context="{'group_by':'due_date'}"/>
+            </search>
+        </field>
+    </record>
+    <record id="todo_task_view_form" model="ir.ui.view">
+        <field name="name">Todo Form</field>
+        <field name="model">todo.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="status" widget="statusbar"/>
+                    <button name="action_New" string="New"
+                            type="object" class="btn-primary"
+                            invisible="(status != 'in progress')"
+                    />
+                    <button name="action_in_progress" string="In Progress"
+                            type="object" class="btn-secondary"
+                            invisible="(status != 'new')"
+                    />
+                    <button name="action_completed" string="Completed"
+                            type="object" class="btn-success"
+                            invisible="(status == 'completed')"
+                    />
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" readonly="status in ['completed','closed']"/>
+                        </h1>
+                        <label for="seq"/>
+                        <h1>
+                            <field name="seq"/>
+                        </h1>
+                    </div>
+                    <group string="Info">
+                        <field name="assign_to" readonly="status in ['completed','closed']"/>
+                        <field name="employee_id" readonly="status in ['completed','closed']"/>
+                        <field name="description" readonly="status in ['completed','closed']"/>
+                        <field name="due_date" readonly="status in ['completed','closed']"/>
+                        <field name="estimated_time" readonly="status in ['completed','closed']"/>
+                        <field name="status" readonly="status in ['completed','closed']"/>
+                        <field name="active" invisible="True"/>
+
+                    </group>
+                    <notebook>
+                        <page string="Time Taken">
+                            <field name="todo_lines_ids" readonly="status in ['completed','closed']">
+                                <tree>
+                                    <field name="date"/>
+                                    <field name="time_taken"/>
+                                    <field name="description"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="task_checking_due_date_cron" model="ir.cron">
+        <field name="name">Checking Due Date</field>
+        <field name="model_id" ref="model_todo_task"/>
+        <field name="state">code</field>
+        <field name="code">model.checking_due_date_is_late()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="task_close_action_server" model="ir.actions.server">
+        <field name="name">Closed</field>
+        <field name="model_id" ref="model_todo_task"/>
+        <field name="binding_model_id" ref="model_todo_task"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.action_closed()
+        </field>
+    </record>
+    <record id="assign_bulk_tasks_wizard" model="ir.actions.server">
+        <field name="name">Assign To</field>
+        <field name="model_id" ref="model_todo_task"/>
+        <field name="binding_model_id" ref="model_todo_task"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.open_assign_to_wizard()
+        </field>
+    </record>
+
+    <record id="todo_task_action" model="ir.actions.act_window">
+        <field name="name">Task</field>
+        <field name="res_model">todo.task</field>
+    </record>
+
+    <menuitem id="todo_task_menu_item"
+              name="Tasks"
+              parent="todo_task_base_menu"
+              action="todo_task_action"
+    />
+</odoo>

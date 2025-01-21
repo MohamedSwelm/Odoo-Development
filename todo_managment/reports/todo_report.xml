@@ -1,0 +1,69 @@
+<odoo>
+    <record id="todo_report_action" model="ir.actions.report">
+        <field name="name">Task Report</field>
+        <field name="model">todo.task</field>
+        <field name="binding_model_id" ref="model_todo_task"/>
+        <field name="binding_type">report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">todo_managment.todo_task_report_template</field>
+    </record>
+
+    <template id="todo_task_report_template">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <t t-foreach="docs" t-as="doc">
+                    <style>
+                        table, th, td{
+                        border:1px solid black;
+                        text-align :center;
+                        }
+                    </style>
+                    <p>Task Name:<span> <t t-esc="doc.name"/> </span> </p>
+                    <p>Due Date: <span> <t t-esc="doc.due_date"/> </span> </p>
+                    <p>Assign To: <span> <t t-esc="doc.assign_to.name"/> </span> </p>
+                    <p>Estimated Time: <span><t t-esc="doc.estimated_time"/> </span></p>
+                    <p>Description: <span> <t t-esc="doc.description"/> </span> </p>
+                    <br/>
+                    <table style="width:100%">
+                        <tr>
+                            <th colspan="4">Timesheet</th>
+                        </tr>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Time</th>
+                        </tr>
+                        <t t-set="total_time" t-value="0" />
+                        <t t-set="counter" t-value="0"/>
+                        <t t-foreach="doc.todo_lines_ids" t-as="rec">
+                            <tr>
+                                <td>
+                                    <t t-set="counter" t-value="counter+1"/>
+                                    <t t-esc="counter"/>
+                                </td>
+                                <td>
+                                    <t t-esc="rec.date"/>
+                                </td>
+                                <td>
+                                    <t t-esc="rec.description"/>
+                                </td>
+                                <td>
+                                    <t t-esc="rec.time_taken"/>
+                                    <t t-set="total_time" t-value="rec.time_taken+total_time"/>
+                                </td>
+                            </tr>
+                        </t>
+                        <tr>
+                            <td colspan="3">Total Time</td>
+                            <td>
+                                <t t-esc="total_time"/>
+                            </td>
+                        </tr>
+                    </table>
+                </t>
+            </t>
+        </t>
+        <br/>
+    </template>
+</odoo>
